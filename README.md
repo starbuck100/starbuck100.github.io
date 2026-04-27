@@ -18,3 +18,23 @@ python -m http.server 4173
 ```
 
 GitHub Pages serves from `main:/`.
+
+## Optional AI rewire proxy
+
+The page can call OpenRouter through a Cloudflare Worker in `worker/`.
+Do not put the OpenRouter key into browser JavaScript.
+
+```bash
+cd worker
+npx wrangler login
+npx wrangler secret put OPENROUTER_API_KEY
+npx wrangler deploy
+```
+
+After deployment, point the page at the Worker endpoint:
+
+```js
+localStorage.setItem("gitbuck:rewire-endpoint", "https://YOUR-WORKER.workers.dev/rewire")
+```
+
+The client only applies schema-validated text fields and fixed modes.

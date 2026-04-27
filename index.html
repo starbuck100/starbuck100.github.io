@@ -154,6 +154,15 @@
         </p>
       </div>
 
+      <form class="rewire-console reveal" id="rewireForm" aria-label="AI rewire console">
+        <label for="rewirePrompt">Ask the room to rewire itself</label>
+        <div class="rewire-input-row">
+          <input id="rewirePrompt" name="prompt" maxlength="220" autocomplete="off" placeholder="make it feel like a midnight media lab">
+          <button class="button primary" type="submit">Rewire</button>
+        </div>
+        <p id="rewireStatus" role="status">Safe mode: the model can only return validated JSON, never HTML or code.</p>
+      </form>
+
       <div class="mode-deck reveal" role="group" aria-label="Choose operating mode">
         <button class="mode-button is-active" type="button" data-mode="agents" aria-pressed="true">
           <span>01</span>

@@ -527,6 +527,7 @@ h3 {
 }
 
 .play-copy,
+.rewire-console,
 .mode-deck,
 .section-head,
 .work-grid,
@@ -541,6 +542,48 @@ h3 {
 
 .play-copy {
   margin-right: 0;
+}
+
+.rewire-console {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: clamp(1rem, 3vw, 2rem);
+  padding: 1rem;
+  border: 2px solid rgba(23, 16, 25, 0.9);
+  background: linear-gradient(135deg, rgba(255, 241, 205, 0.9), rgba(234, 191, 176, 0.9));
+  box-shadow: 8px 8px 0 rgba(23, 20, 15, 0.16);
+}
+
+.rewire-console label {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.rewire-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.rewire-console input {
+  min-height: 3rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  background: rgba(255, 246, 223, 0.86);
+  font: inherit;
+  font-weight: 760;
+}
+
+.rewire-console p {
+  margin: 0.75rem 0 0;
+  color: color-mix(in oklch, var(--ink) 62%, var(--muted));
+  font-size: 0.88rem;
+  font-weight: 760;
 }
 
 .mode-deck {
@@ -821,7 +864,8 @@ h3 {
   .project-rail,
   .stack-row,
   .world-progress,
-  .room-map-grid {
+  .room-map-grid,
+  .rewire-input-row {
     grid-template-columns: 1fr;
   }
 

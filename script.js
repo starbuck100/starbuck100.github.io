@@ -23,6 +23,10 @@ const modes = {
   }
 };
 
+const REWIRE_ENDPOINT = window.GITBUCK_REWIRE_ENDPOINT
+  || localStorage.getItem("gitbuck:rewire-endpoint")
+  || "";
+
 const worldScenes = {
   window: {
     mode: "agents",
@@ -51,6 +55,11 @@ const canvas = document.querySelector("#stage3d");
 const modeTitle = document.querySelector("#modeTitle");
 const modeCopy = document.querySelector("#modeCopy");
 const modeButtons = [...document.querySelectorAll(".mode-button")];
+const rewireForm = document.querySelector("#rewireForm");
+const rewirePrompt = document.querySelector("#rewirePrompt");
+const rewireStatus = document.querySelector("#rewireStatus");
+const heroTitle = document.querySelector("#hero-title");
+const heroLede = document.querySelector(".lede");
 const pointer = { x: 0, y: 0, active: false };
 const clock = new THREE.Clock();
 
@@ -75,6 +84,10 @@ function initInterface() {
   modeButtons.forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });
+
+  if (rewireForm) {
+    rewireForm.addEventListener("submit", handleRewireSubmit);
+  }
 
   initWorldTour();
 
@@ -104,6 +117,98 @@ function initInterface() {
     pointer.y = event.clientY / window.innerHeight - 0.5;
     pointer.active = true;
   }, { passive: true });
+}
+
+async function handleRewireSubmit(event) {
+  event.preventDefault();
+  const prompt = (rewirePrompt?.value || "").trim();
+  if (!prompt) {
+    setRewireStatus("Give the room a direction first.");
+    return;
+  }
+  setRewireStatus("Rewiring the room...");
+  const request = {
+    prompt,
+    mode: document.body.dataset.mode || "agents",
+    world: document.body.dataset.world || "window"
+  };
+  try {
+    const result = await fetchRewire(request);
+    applyRewire(result, "Model rewire applied. Output was schema-validated before touching the page.");
+  } catch (error) {
+    const fallback = localRewire(request);
+    applyRewire(fallback, "Proxy unavailable, so a local safe fallback rewired the page. Deploy the Worker to use OpenRouter live.");
+  }
+}
+
+async function fetchRewire(request) {
+  if (!REWIRE_ENDPOINT) {
+    throw new Error("rewire endpoint not configured");
+  }
+  const response = await fetch(REWIRE_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(request)
+  });
+  if (!response.ok) throw new Error(`rewire ${response.status}`);
+  const payload = await response.json();
+  return validateRewire(payload);
+}
+
+function applyRewire(payload, status) {
+  const safe = validateRewire(payload);
+  if (heroTitle) heroTitle.textContent = safe.headline;
+  if (heroLede) heroLede.textContent = safe.lede;
+  setMode(safe.mode);
+  modeTitle.textContent = safe.hudTitle;
+  modeCopy.textContent = safe.hudCopy;
+  setRewireStatus(status);
+}
+
+function validateRewire(payload) {
+  const allowedModes = new Set(["agents", "media", "ops", "terminal"]);
+  const safe = payload && typeof payload === "object" ? payload : {};
+  return {
+    mode: allowedModes.has(safe.mode) ? safe.mode : "agents",
+    headline: cleanText(safe.headline, 72) || "I build tools that make agents do real work.",
+    lede: cleanText(safe.lede, 220) || "GitBuck is a static lo-fi control surface for agent workflows, local AI operations, media pipelines, and terminal-native tools.",
+    hudTitle: cleanText(safe.hudTitle, 44) || "Agent build loop",
+    hudCopy: cleanText(safe.hudCopy, 150) || "Plan, edit, test, review, remember, and hand off without losing the thread."
+  };
+}
+
+function cleanText(value, maxLength) {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/[<>`{}[\]\\]/g, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function localRewire({ prompt }) {
+  const lower = prompt.toLowerCase();
+  const mode = lower.includes("video") || lower.includes("ocr") || lower.includes("media") || lower.includes("audio")
+    ? "media"
+    : lower.includes("terminal") || lower.includes("cli") || lower.includes("tui")
+      ? "terminal"
+      : lower.includes("server") || lower.includes("gpu") || lower.includes("ops")
+        ? "ops"
+        : "agents";
+  const label = cleanText(prompt, 54) || "agent work";
+  return {
+    mode,
+    headline: `A lo-fi room tuned for ${label}.`,
+    lede: "The page rewires locally with the same guardrails as the model path: text only, fixed modes only, no generated HTML, no script execution.",
+    hudTitle: modes[mode].title,
+    hudCopy: modes[mode].copy
+  };
+}
+
+function setRewireStatus(message) {
+  if (rewireStatus) rewireStatus.textContent = message;
 }
 
 function applyMode(modeName) {
