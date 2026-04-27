@@ -75,6 +75,7 @@ let sparkles;
 let activeColor = new THREE.Color(modes.agents.color);
 let worldProgress = 0;
 let currentWorld = "";
+let modeLockUntil = 0;
 
 initInterface();
 initScene();
@@ -159,7 +160,8 @@ function applyRewire(payload, status) {
   const safe = validateRewire(payload);
   if (heroTitle) heroTitle.textContent = safe.headline;
   if (heroLede) heroLede.textContent = safe.lede;
-  setMode(safe.mode);
+  modeLockUntil = Date.now() + 6000;
+  setMode(safe.mode, false);
   modeTitle.textContent = safe.hudTitle;
   modeCopy.textContent = safe.hudCopy;
   setRewireStatus(status);
@@ -273,7 +275,13 @@ function initWorldTour() {
   });
 
   function updateProgress() {
+    if (Date.now() < modeLockUntil) {
+      return;
+    }
     const rect = tour.getBoundingClientRect();
+    if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+      return;
+    }
     const travel = Math.max(1, rect.height - window.innerHeight);
     worldProgress = Math.min(1, Math.max(0, -rect.top / travel));
     const index = Math.min(sceneNames.length - 1, Math.floor(worldProgress * sceneNames.length));

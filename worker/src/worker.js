@@ -60,51 +60,88 @@ export default {
       return json({ error: "prompt_required" }, 400, headers);
     }
 
-    const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "authorization": `Bearer ${env.OPENROUTER_API_KEY}`,
-        "content-type": "application/json",
-        "http-referer": env.SITE_ORIGIN || "https://starbuck100.github.io",
-        "x-title": "GitBuck Rewire"
-      },
-      body: JSON.stringify({
-        model: env.OPENROUTER_MODEL || "deepseek/deepseek-v4-pro",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: JSON.stringify({
-              visitor_prompt: prompt,
-              current_mode: mode,
-              current_world_station: world
-            })
-          }
-        ],
-        temperature: 0.65,
-        max_tokens: 360
-      })
-    });
+    const models = [
+      env.OPENROUTER_MODEL || "deepseek/deepseek-v4-pro",
+      env.OPENROUTER_FALLBACK_MODEL || "deepseek/deepseek-chat"
+    ].filter(Boolean);
 
-    if (!upstream.ok) {
-      return json({ error: "model_unavailable" }, 502, headers);
+    for (const model of [...new Set(models)]) {
+      const result = await callOpenRouter(env, model, prompt, mode, world);
+      if (result.parsed) {
+        const validated = validateRewire(result.parsed);
+        validated.mode = inferMode(prompt, validated.mode);
+        return json(validated, 200, headers);
+      }
     }
 
-    const data = await upstream.json();
-    const content = data?.choices?.[0]?.message?.content || "";
-    const parsed = parseJsonObject(content);
-    if (!parsed) {
-      return json({ error: "invalid_model_json" }, 502, headers);
-    }
-
-    return json(validateRewire(parsed), 200, headers);
+    return json(serverFallback(prompt, mode), 200, headers);
   }
 };
+
+async function callOpenRouter(env, model, prompt, mode, world) {
+  const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${env.OPENROUTER_API_KEY}`,
+      "content-type": "application/json",
+      "http-referer": env.SITE_ORIGIN || "https://starbuck100.github.io",
+      "x-title": "GitBuck Rewire"
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `Return a JSON object matching the schema. Visitor request: ${JSON.stringify({
+            visitor_prompt: prompt,
+            current_mode: mode,
+            current_world_station: world
+          })}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.65,
+      max_tokens: 360
+    })
+  });
+
+  if (!upstream.ok) {
+    return { error: upstream.status };
+  }
+
+  const data = await upstream.json();
+  const content = data?.choices?.[0]?.message?.content || "";
+  return { parsed: parseJsonObject(content) };
+}
 
 function isAllowedOrigin(origin, env) {
   if (!origin) return false;
   if (origin === (env.SITE_ORIGIN || "https://starbuck100.github.io")) return true;
   return LOCAL_ORIGINS.has(origin);
+}
+
+function serverFallback(prompt, mode) {
+  const fallbackMode = inferMode(prompt, mode);
+  const label = clean(prompt, 54) || "agent work";
+  return validateRewire({
+    mode: fallbackMode,
+    headline: `A lo-fi room tuned for ${label}.`,
+    lede: "The Worker reached the model path, then applied the same safe schema guardrails before updating the static page.",
+    hudTitle: fallbackMode === "media" ? "Media intelligence" : fallbackMode === "ops" ? "Local AI operations" : fallbackMode === "terminal" ? "Terminal products" : "Agent build loop",
+    hudCopy: "Only fixed text fields and approved modes can change. No generated HTML, scripts, links, or secrets are applied."
+  });
+}
+
+function inferMode(prompt, fallbackMode) {
+  const lower = prompt.toLowerCase();
+  return lower.includes("media") || lower.includes("ocr") || lower.includes("audio") || lower.includes("video")
+    ? "media"
+    : lower.includes("gpu") || lower.includes("ops") || lower.includes("server")
+      ? "ops"
+      : lower.includes("terminal") || lower.includes("cli") || lower.includes("tui")
+        ? "terminal"
+        : fallbackMode;
 }
 
 function corsHeaders(origin, env) {
