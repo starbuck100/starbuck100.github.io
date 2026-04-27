@@ -25,7 +25,7 @@ const modes = {
 
 const REWIRE_ENDPOINT = window.GITBUCK_REWIRE_ENDPOINT
   || localStorage.getItem("gitbuck:rewire-endpoint")
-  || "";
+  || "https://gitbuck-rewire.starbuck1912.workers.dev/rewire";
 
 const worldScenes = {
   window: {
