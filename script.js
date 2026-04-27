@@ -95,9 +95,13 @@ const energyLevels = {
   rush: 1.48
 };
 
+const defaultRewireEndpoint = ["getsop.dev", "www.getsop.dev"].includes(window.location.hostname)
+  ? `${window.location.origin}/rewire`
+  : "https://gitbuck-rewire.starbuck1912.workers.dev/rewire";
+
 const REWIRE_ENDPOINT = window.GITBUCK_REWIRE_ENDPOINT
   || localStorage.getItem("gitbuck:rewire-endpoint")
-  || "https://gitbuck-rewire.starbuck1912.workers.dev/rewire";
+  || defaultRewireEndpoint;
 
 const worldScenes = {
   window: {

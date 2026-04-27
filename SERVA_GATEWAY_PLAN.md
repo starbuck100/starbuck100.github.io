@@ -15,6 +15,10 @@ Implemented:
   schema-sichere Fallback-Generation, KV-Library bleibt bei maximal 7 Eintraegen.
 - GitBuck Frontend: optionales `assetUrl`-Preview-Feld fuer Worker-vertrauenswuerdige
   Raster-Assets.
+- Domain: `getsop.dev` und `www.getsop.dev` sollen als Cloudflare Worker Custom
+  Domains dienen. Der Worker proxyt statische GET/HEAD-Requests zu
+  `https://starbuck100.github.io` und behandelt `/rewire` sowie `/generations`
+  als API auf derselben Domain.
 
 Nicht automatisch umgesetzt:
 
