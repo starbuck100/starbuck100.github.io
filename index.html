@@ -159,6 +159,7 @@
           <span>AI patch applied</span>
           <strong id="rewireResultTitle">Room signal updated</strong>
           <p id="rewireResultCopy">The visible page state changed.</p>
+          <small id="rewireAssetBrief">Future asset brief will appear here.</small>
         </output>
         <label for="rewirePrompt">Ask the room to rewire itself</label>
         <div class="rewire-input-row">
@@ -186,6 +187,16 @@
           Terminal
         </button>
       </div>
+
+      <section class="generation-library reveal" aria-labelledby="generationLibraryTitle">
+        <div>
+          <p class="section-kicker">Saved rewires</p>
+          <h3 id="generationLibraryTitle">Last seven room versions</h3>
+        </div>
+        <div class="generation-list" id="generationList" aria-live="polite">
+          <p class="library-empty">No saved room versions yet.</p>
+        </div>
+      </section>
     </section>
 
     <section id="work" class="work-band" aria-labelledby="work-title">

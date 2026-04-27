@@ -133,6 +133,8 @@ const rewireStatus = document.querySelector("#rewireStatus");
 const rewireResult = document.querySelector("#rewireResult");
 const rewireResultTitle = document.querySelector("#rewireResultTitle");
 const rewireResultCopy = document.querySelector("#rewireResultCopy");
+const rewireAssetBrief = document.querySelector("#rewireAssetBrief");
+const generationList = document.querySelector("#generationList");
 const heroTitle = document.querySelector("#hero-title");
 const heroLede = document.querySelector(".lede");
 const playBand = document.querySelector("#play");
@@ -166,6 +168,7 @@ let visualState = { palette: "sunset", scene: "orbital", layout: "split", energy
 let worldProgress = 0;
 let currentWorld = "";
 let modeLockUntil = 0;
+let savedGenerations = [];
 
 initInterface();
 initScene();
@@ -179,6 +182,8 @@ function initInterface() {
   if (rewireForm) {
     rewireForm.addEventListener("submit", handleRewireSubmit);
   }
+  generationList?.addEventListener("click", handleGenerationLibraryClick);
+  loadGenerations();
 
   initWorldTour();
 
@@ -240,7 +245,7 @@ async function fetchRewire(request) {
     throw new Error("rewire endpoint not configured");
   }
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 24000);
+  const timeout = window.setTimeout(() => controller.abort(), 52000);
   try {
     const response = await fetch(REWIRE_ENDPOINT, {
       method: "POST",
@@ -250,10 +255,103 @@ async function fetchRewire(request) {
     });
     if (!response.ok) throw new Error(`rewire ${response.status}`);
     const payload = await response.json();
-    return validateRewire(payload);
+    if (Array.isArray(payload.library)) {
+      renderGenerationLibrary(payload.library);
+    }
+    return validateRewire(payload.generation || payload);
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+async function loadGenerations() {
+  if (!generationList || !REWIRE_ENDPOINT) return;
+  const endpoint = generationsEndpoint();
+  if (!endpoint) return;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 9000);
+  try {
+    const response = await fetch(endpoint, { signal: controller.signal });
+    if (!response.ok) return;
+    const payload = await response.json();
+    renderGenerationLibrary(payload.generations || payload.library || []);
+  } catch {
+    renderGenerationLibrary(savedGenerations);
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+function generationsEndpoint() {
+  try {
+    const endpoint = new URL(REWIRE_ENDPOINT, window.location.href);
+    endpoint.pathname = endpoint.pathname.replace(/\/rewire\/?$/, "/generations");
+    return endpoint.toString();
+  } catch {
+    return "";
+  }
+}
+
+function renderGenerationLibrary(list) {
+  if (!generationList) return;
+  savedGenerations = (Array.isArray(list) ? list : [])
+    .map(validateRewire)
+    .filter((item) => item.id)
+    .slice(0, 7);
+  generationList.replaceChildren();
+  if (!savedGenerations.length) {
+    const empty = document.createElement("p");
+    empty.className = "library-empty";
+    empty.textContent = "No saved room versions yet.";
+    generationList.append(empty);
+    return;
+  }
+  savedGenerations.forEach((generation, index) => {
+    const button = document.createElement("button");
+    button.className = "generation-card";
+    button.type = "button";
+    button.dataset.generationId = generation.id;
+    button.setAttribute("aria-label", `Restore ${generation.versionTitle}`);
+
+    const meta = document.createElement("span");
+    meta.textContent = `${String(index + 1).padStart(2, "0")} / ${formatGenerationTime(generation.createdAt)} / ${generation.mode}`;
+
+    const title = document.createElement("strong");
+    title.textContent = generation.versionTitle;
+
+    const prompt = document.createElement("p");
+    prompt.textContent = generation.prompt || generation.artDirection;
+
+    const chips = document.createElement("small");
+    chips.textContent = `${generation.palette} / ${generation.scene} / ${generation.energy}`;
+
+    button.append(meta, title, prompt, chips);
+    generationList.append(button);
+  });
+}
+
+function upsertSavedGeneration(generation) {
+  const safe = validateRewire(generation);
+  if (!safe.id) return;
+  renderGenerationLibrary([
+    safe,
+    ...savedGenerations.filter((item) => item.id !== safe.id)
+  ]);
+}
+
+function handleGenerationLibraryClick(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  const button = target?.closest(".generation-card");
+  if (!button) return;
+  const generation = savedGenerations.find((item) => item.id === button.dataset.generationId);
+  if (!generation) return;
+  applyRewire(generation, "Saved generation restored.");
+}
+
+function formatGenerationTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "saved";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function applyRewire(payload, status) {
@@ -276,6 +374,8 @@ function applyRewire(payload, status) {
   if (rewireResult) rewireResult.hidden = false;
   if (rewireResultTitle) rewireResultTitle.textContent = safe.hudTitle;
   if (rewireResultCopy) rewireResultCopy.textContent = safe.hudCopy;
+  if (rewireAssetBrief) rewireAssetBrief.textContent = safe.assetPrompt;
+  if (safe.id) upsertSavedGeneration(safe);
   if (rewireForm) {
     rewireForm.classList.remove("is-rewired");
     void rewireForm.offsetWidth;
@@ -307,18 +407,26 @@ function validateRewire(payload) {
   const hudTitle = cleanText(safe.hudTitle, 44) || modes[mode].title;
   const lede = cleanText(safe.lede, 220) || "GitBuck is a static lo-fi control surface for agent workflows, local AI operations, media pipelines, and terminal-native tools.";
   const defaultPalette = mode === "media" ? "blueprint" : mode === "ops" ? "greenroom" : mode === "terminal" ? "rosecrt" : "sunset";
-  const cards = Array.isArray(safe.cards) ? safe.cards.slice(0, 4).map((card, index) => ({
+  const cardInput = Array.isArray(safe.cards) ? safe.cards.slice(0, 4) : [];
+  while (cardInput.length < 4) cardInput.push({});
+  const cards = cardInput.map((card, index) => ({
     tag: cleanText(card?.tag, 28) || `${String(index + 1).padStart(2, "0")} / Signal`,
     title: cleanText(card?.title, 58) || workCards[index]?.querySelector("h3")?.textContent || "Live system surface",
     copy: cleanText(card?.copy, 150) || workCards[index]?.querySelector("p")?.textContent || "A safe temporary rewrite changed this card in the open tab."
-  })) : [];
+  }));
   return {
     mode,
+    id: cleanText(safe.id, 64),
+    prompt: cleanText(safe.prompt, 220),
+    createdAt: cleanText(safe.createdAt, 40),
     source: cleanText(safe.source, 20) || "model",
+    versionTitle: cleanText(safe.versionTitle, 42) || hudTitle,
     palette: allowedPalettes.has(safe.palette) ? safe.palette : defaultPalette,
     scene: allowedScenes.has(safe.scene) ? safe.scene : mode === "media" ? "mediaScope" : mode === "ops" ? "opsTower" : mode === "terminal" ? "terminalGrid" : "orbital",
     layout: allowedLayouts.has(safe.layout) ? safe.layout : "split",
     energy: allowedEnergy.has(safe.energy) ? safe.energy : "pulse",
+    artDirection: cleanText(safe.artDirection, 130) || `${hudTitle} staged as a lo-fi room with tactile controls and visible machine state.`,
+    assetPrompt: cleanText(safe.assetPrompt, 240) || `High-fidelity lo-fi anime control room for ${hudTitle}, dusk window light, detailed desk objects, cinematic composition, no text.`,
     headline: cleanText(safe.headline, 72) || "I build tools that make agents do real work.",
     lede,
     hudTitle,
@@ -364,12 +472,18 @@ function localRewire({ prompt }) {
   const palette = mode === "media" ? "blueprint" : mode === "ops" ? "greenroom" : mode === "terminal" ? "rosecrt" : "amber";
   const scene = mode === "media" ? "mediaScope" : mode === "ops" ? "opsTower" : mode === "terminal" ? "terminalGrid" : "constellation";
   return validateRewire({
+    id: makeLocalGenerationId(),
+    prompt: label,
+    createdAt: new Date().toISOString(),
     source: "localFallback",
     mode,
+    versionTitle: titleCase(label, 42),
     palette,
     scene,
     layout: lower.includes("terminal") || lower.includes("cli") ? "console" : lower.includes("poster") || lower.includes("hero") ? "poster" : "deck",
     energy: lower.includes("calm") || lower.includes("slow") ? "calm" : lower.includes("fast") || lower.includes("rush") ? "rush" : "pulse",
+    artDirection: `${label} as a lo-fi operator room with prompt-specific props, tactile controls, and visible machine state.`,
+    assetPrompt: `High-fidelity lo-fi anime control room for ${label}, window light, physical consoles, detailed desk objects, cinematic composition, no text.`,
     headline: `A new lo-fi room for ${label}.`,
     lede: "The safe fallback now changes text, layout, color tokens, and the Three.js rig with the same client-side guardrails as the model path.",
     hudTitle: modes[mode].title,
@@ -390,17 +504,55 @@ function localRewire({ prompt }) {
 }
 
 function buildFallbackCards(mode, label) {
-  const themes = {
+  const promptTerms = topicTerms(label);
+  const themes = promptTerms.length >= 4 ? promptTerms.slice(0, 4) : ({
     agents: ["Planner", "Editor", "Verifier", "Memory"],
     media: ["Transcript", "OCR", "Frames", "Audio"],
     ops: ["GPU", "Worker", "Recovery", "Runbook"],
     terminal: ["Prompt", "Status", "TUI", "Output"]
-  }[mode] || ["Signal", "Loop", "Surface", "Proof"];
+  }[mode] || ["Signal", "Loop", "Surface", "Proof"]);
   return themes.map((title, index) => ({
     tag: `${String(index + 1).padStart(2, "0")} / ${label.slice(0, 18)}`,
-    title: `${title} layer`,
-    copy: `Temporary ${label} surface ${index + 1}: rewritten safely as text, then staged into the live static page.`
+    title: `${titleCase(title, 30)} layer`,
+    copy: `Prompt-owned ${label} surface ${index + 1}: the ${title} signal changes copy, layout, palette, and scene without injecting code.`
   }));
+}
+
+function makeLocalGenerationId() {
+  return window.crypto?.randomUUID?.() || `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function topicTerms(value) {
+  const normalized = normalizeForTerms(value);
+  const stopwords = new Set([
+    "the", "and", "for", "with", "that", "this", "from", "into", "make", "feel",
+    "like", "room", "page", "site", "eine", "einen", "einem", "einer", "oder",
+    "und", "mit", "fuer", "fur", "aus", "als", "das", "die", "der", "den",
+    "dem", "ist", "soll", "sollte", "mach", "mache", "bitte", "mehr", "neue",
+    "neuer", "neues", "richtig", "krass", "cool", "style", "seite"
+  ]);
+  const terms = normalized.match(/[a-z0-9][a-z0-9-]{2,}/g) || [];
+  return [...new Set(terms.filter((term) => !stopwords.has(term)))].slice(0, 12);
+}
+
+function normalizeForTerms(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/ß/g, "ss")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function titleCase(value, maxLength) {
+  const text = cleanText(value, maxLength)
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
+  return cleanText(text, maxLength);
 }
 
 function applyCards(cards) {
