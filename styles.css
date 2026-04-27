@@ -420,7 +420,7 @@ h3 {
   margin: 1.5rem 0;
 }
 
-.world-progress span {
+.world-progress button {
   min-height: 3.2rem;
   display: grid;
   place-items: center;
@@ -433,10 +433,16 @@ h3 {
   text-transform: uppercase;
 }
 
-.world-progress span.is-active {
+.world-progress button.is-active {
   color: var(--ink);
   background: var(--active);
   border-color: var(--active);
+}
+
+.world-progress button:hover,
+.world-progress button:focus-visible {
+  color: var(--ink);
+  background: var(--paper-hot);
 }
 
 .world-steps {
@@ -449,19 +455,14 @@ h3 {
 
 .world-step {
   min-height: 92svh;
-  display: flex;
-  align-items: center;
+  display: block;
   max-width: var(--max);
   margin: 0 auto;
-  padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 4vw, 3rem);
-  pointer-events: none;
-}
-
-.world-step.right {
-  justify-content: flex-end;
+  padding: 0 clamp(1rem, 4vw, 3rem);
 }
 
 .world-card {
+  display: none;
   width: min(26rem, 100%);
   padding: 1rem;
   border: 1px solid rgba(255, 232, 205, 0.32);
@@ -510,7 +511,7 @@ h3 {
   gap: 0.6rem;
 }
 
-.room-map-grid span {
+  .room-map-grid span {
   margin: 0;
   padding: 0.8rem;
   color: var(--ink);

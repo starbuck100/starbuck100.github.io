@@ -65,7 +65,7 @@ let nodeGroup;
 let sparkles;
 let activeColor = new THREE.Color(modes.agents.color);
 let worldProgress = 0;
-let currentWorld = "window";
+let currentWorld = "";
 
 initInterface();
 initScene();
@@ -135,8 +135,8 @@ function initWorldTour() {
   const title = document.querySelector("#world-title");
   const copy = document.querySelector("#world-copy");
   const dots = [...document.querySelectorAll("[data-dot]")];
-  const steps = [...document.querySelectorAll(".world-step")];
-  if (!tour || !title || !copy || steps.length === 0) return;
+  const sceneNames = ["window", "agents", "media", "terminal"];
+  if (!tour || !title || !copy) return;
 
   function setWorld(sceneName) {
     const sceneData = worldScenes[sceneName] || worldScenes.window;
@@ -146,28 +146,33 @@ function initWorldTour() {
       document.body.dataset.world = sceneName;
       title.textContent = sceneData.title;
       copy.textContent = sceneData.copy;
-      dots.forEach((dot) => dot.classList.toggle("is-active", dot.dataset.dot === sceneName));
+      dots.forEach((dot) => {
+        const active = dot.dataset.dot === sceneName;
+        dot.classList.toggle("is-active", active);
+        dot.setAttribute("aria-pressed", String(active));
+      });
     };
-    if (document.startViewTransition) {
-      document.startViewTransition(update);
-    } else {
-      update();
-    }
+    update();
     setMode(sceneData.mode, false);
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (visible) setWorld(visible.target.dataset.world);
-  }, { threshold: [0.22, 0.44, 0.66] });
-  steps.forEach((step) => observer.observe(step));
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      const rect = tour.getBoundingClientRect();
+      const travel = Math.max(1, rect.height - window.innerHeight);
+      const top = window.scrollY + rect.top;
+      const target = top + travel * (index / sceneNames.length + 0.01);
+      window.scrollTo({ top: target, behavior: reducedMotion ? "auto" : "smooth" });
+      setWorld(dot.dataset.dot);
+    });
+  });
 
   function updateProgress() {
     const rect = tour.getBoundingClientRect();
     const travel = Math.max(1, rect.height - window.innerHeight);
     worldProgress = Math.min(1, Math.max(0, -rect.top / travel));
+    const index = Math.min(sceneNames.length - 1, Math.floor(worldProgress * sceneNames.length));
+    setWorld(sceneNames[index]);
   }
   updateProgress();
   window.addEventListener("scroll", updateProgress, { passive: true });
