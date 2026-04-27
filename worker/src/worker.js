@@ -148,8 +148,20 @@ async function callOpenRouter(env, model, prompt, mode, world) {
   }
 
   const data = await upstream.json();
-  const content = data?.choices?.[0]?.message?.content || "";
+  const message = data?.choices?.[0]?.message || {};
+  const content = normalizeContent(message.content);
   return { parsed: parseJsonObject(content) };
+}
+
+function normalizeContent(content) {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content.map((part) => {
+    if (typeof part === "string") return part;
+    if (typeof part?.text === "string") return part.text;
+    if (typeof part?.content === "string") return part.content;
+    return "";
+  }).join("\\n");
 }
 
 function isAllowedOrigin(origin, env) {
