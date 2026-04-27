@@ -4,13 +4,6 @@ const ALLOWED_SCENES = new Set(["orbital", "terminalGrid", "mediaScope", "opsTow
 const ALLOWED_LAYOUTS = new Set(["split", "poster", "console", "deck"]);
 const ALLOWED_ENERGY = new Set(["calm", "pulse", "rush"]);
 const LOCAL_ORIGINS = new Set(["http://127.0.0.1:4173", "http://localhost:4173"]);
-const DEFAULT_SITE_ORIGINS = new Set([
-  "https://starbuck100.github.io",
-  "https://gitbuck-rewire.starbuck1912.workers.dev",
-  "https://getsop.dev",
-  "https://www.getsop.dev"
-]);
-const API_PATHS = new Set(["/rewire", "/generations"]);
 const LIBRARY_KEY = "generations:v1";
 const MAX_GENERATIONS = 7;
 
@@ -61,20 +54,12 @@ export default {
     const origin = request.headers.get("origin") || "";
     const headers = corsHeaders(origin, env);
     const url = new URL(request.url);
-    const apiPath = API_PATHS.has(url.pathname);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers });
     }
 
-    if (!apiPath) {
-      if (request.method === "GET" || request.method === "HEAD") {
-        return proxyStaticSite(request, url, env);
-      }
-      return json({ error: "not_found" }, 404, headers);
-    }
-
-    if (!isAllowedApiRequest(origin, url, env)) {
+    if (!isAllowedOrigin(origin, env)) {
       return json({ error: "origin_not_allowed" }, 403, headers);
     }
 
@@ -314,59 +299,10 @@ function normalizeContent(content) {
   }).join("\\n");
 }
 
-async function proxyStaticSite(request, url, env) {
-  const staticOrigin = String(env.STATIC_ORIGIN || "https://starbuck100.github.io").replace(/\/+$/, "");
-  const upstreamUrl = new URL(url.pathname + url.search, staticOrigin);
-  const upstream = await fetch(upstreamUrl.toString(), {
-    method: request.method,
-    headers: staticRequestHeaders(request.headers),
-    redirect: "follow"
-  });
-  const responseHeaders = new Headers(upstream.headers);
-  responseHeaders.set("x-gitbuck-static-origin", "github-pages");
-  responseHeaders.delete("content-security-policy");
-  responseHeaders.delete("content-security-policy-report-only");
-  if (url.pathname === "/" || url.pathname.endsWith(".html")) {
-    responseHeaders.set("cache-control", "public, max-age=60, s-maxage=120");
-  }
-  return new Response(upstream.body, {
-    status: upstream.status,
-    statusText: upstream.statusText,
-    headers: responseHeaders
-  });
-}
-
-function staticRequestHeaders(headers) {
-  const next = new Headers(headers);
-  next.delete("host");
-  next.delete("cf-connecting-ip");
-  next.delete("cf-ipcountry");
-  next.delete("cf-ray");
-  next.delete("x-forwarded-for");
-  next.delete("x-forwarded-proto");
-  return next;
-}
-
-function isAllowedApiRequest(origin, url, env) {
-  if (origin) return isAllowedOrigin(origin, env);
-  return allowedOrigins(env).has(`${url.protocol}//${url.host}`);
-}
-
 function isAllowedOrigin(origin, env) {
   if (!origin) return false;
-  return allowedOrigins(env).has(origin);
-}
-
-function allowedOrigins(env) {
-  const origins = new Set([...DEFAULT_SITE_ORIGINS, ...LOCAL_ORIGINS]);
-  for (const value of [env.SITE_ORIGIN, env.SITE_ORIGINS]) {
-    String(value || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .forEach((item) => origins.add(item));
-  }
-  return origins;
+  if (origin === (env.SITE_ORIGIN || "https://starbuck100.github.io")) return true;
+  return LOCAL_ORIGINS.has(origin);
 }
 
 function serverFallback(prompt, mode) {
