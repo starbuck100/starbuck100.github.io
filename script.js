@@ -134,6 +134,7 @@ const rewireResult = document.querySelector("#rewireResult");
 const rewireResultTitle = document.querySelector("#rewireResultTitle");
 const rewireResultCopy = document.querySelector("#rewireResultCopy");
 const rewireAssetBrief = document.querySelector("#rewireAssetBrief");
+const rewireAssetImage = document.querySelector("#rewireAssetImage");
 const generationList = document.querySelector("#generationList");
 const heroTitle = document.querySelector("#hero-title");
 const heroLede = document.querySelector(".lede");
@@ -375,6 +376,15 @@ function applyRewire(payload, status) {
   if (rewireResultTitle) rewireResultTitle.textContent = safe.hudTitle;
   if (rewireResultCopy) rewireResultCopy.textContent = safe.hudCopy;
   if (rewireAssetBrief) rewireAssetBrief.textContent = safe.assetPrompt;
+  if (rewireAssetImage) {
+    if (safe.assetUrl) {
+      rewireAssetImage.src = safe.assetUrl;
+      rewireAssetImage.hidden = false;
+    } else {
+      rewireAssetImage.removeAttribute("src");
+      rewireAssetImage.hidden = true;
+    }
+  }
   if (safe.id) upsertSavedGeneration(safe);
   if (rewireForm) {
     rewireForm.classList.remove("is-rewired");
@@ -427,6 +437,7 @@ function validateRewire(payload) {
     energy: allowedEnergy.has(safe.energy) ? safe.energy : "pulse",
     artDirection: cleanText(safe.artDirection, 130) || `${hudTitle} staged as a lo-fi room with tactile controls and visible machine state.`,
     assetPrompt: cleanText(safe.assetPrompt, 240) || `High-fidelity lo-fi anime control room for ${hudTitle}, dusk window light, detailed desk objects, cinematic composition, no text.`,
+    assetUrl: safeAssetUrl(safe.assetUrl),
     headline: cleanText(safe.headline, 72) || "I build tools that make agents do real work.",
     lede,
     hudTitle,
@@ -457,6 +468,18 @@ function cleanText(value, maxLength) {
   if (cleaned.length <= maxLength) return cleaned;
   const clipped = cleaned.slice(0, maxLength).trim();
   return clipped.replace(/\s+\S*$/, "") || clipped;
+}
+
+function safeAssetUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw || raw.length > 500) return "";
+  try {
+    const url = new URL(raw, window.location.href);
+    if (!["https:", "http:"].includes(url.protocol)) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
 }
 
 function localRewire({ prompt }) {

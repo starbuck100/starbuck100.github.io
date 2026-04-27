@@ -78,10 +78,6 @@ export default {
       return json({ error: "method_not_allowed" }, 405, headers);
     }
 
-    if (!env.OPENROUTER_API_KEY) {
-      return json({ error: "openrouter_secret_missing" }, 503, headers);
-    }
-
     const length = Number(request.headers.get("content-length") || "0");
     if (length > 2048) {
       return json({ error: "request_too_large" }, 413, headers);
@@ -107,7 +103,28 @@ export default {
     ].filter(Boolean);
 
     let generation;
+    let provider = "fallback";
+    const upstreamErrors = [];
+    const serva = await callServaRewire(env, prompt, mode, world);
+    if (serva.generation) {
+      const validated = validateRewire(serva.generation);
+      validated.id = clean(serva.generation.id, 64) || crypto.randomUUID();
+      validated.createdAt = clean(serva.generation.createdAt, 40) || new Date().toISOString();
+      validated.prompt = prompt;
+      validated.source = "serva";
+      const quality = scoreRewire(validated, prompt);
+      if (!quality.needsRepair) {
+        generation = validated;
+        provider = "serva";
+      } else {
+        upstreamErrors.push(`serva_low_score:${quality.score}`);
+      }
+    } else if (serva.error) {
+      upstreamErrors.push(`serva:${serva.error}`);
+    }
+
     for (const model of [...new Set(models)]) {
+      if (generation || !env.OPENROUTER_API_KEY) break;
       const result = await callOpenRouter(env, model, prompt, mode, world);
       if (result.parsed) {
         let validated = validateRewire(result.parsed);
@@ -127,17 +144,93 @@ export default {
           }
         }
         generation = withGenerationMeta(validated, prompt);
+        generation.source = "model";
+        provider = "openrouter";
         break;
       }
+      if (result.error) upstreamErrors.push(`openrouter:${result.error}`);
     }
 
     if (!generation) {
       generation = withGenerationMeta(serverFallback(prompt, mode), prompt);
+      generation.source = "fallback";
     }
+    const asset = await maybeGenerateServaAsset(env, generation);
+    if (asset?.assetUrl) generation.assetUrl = asset.assetUrl;
     const library = await storeGeneration(env, generation);
-    return json({ generation, library }, 200, headers);
+    return json({ generation, library, provider, upstreamErrors, asset }, 200, headers);
   }
 };
+
+async function callServaRewire(env, prompt, mode, world) {
+  if (!env.SERVA_BASE_URL || !env.SERVA_SITE_TOKEN) {
+    return { skipped: true };
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Number(env.SERVA_TIMEOUT_MS || 55000));
+  try {
+    const response = await fetch(servaUrl(env, "/v1/serva/sites/gitbuck/rewire"), {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${env.SERVA_SITE_TOKEN}`
+      },
+      body: JSON.stringify({ prompt, mode, world, schemaVersion: 1 })
+    });
+    const text = await response.text();
+    if (!response.ok) return { error: `http_${response.status}:${text.slice(0, 120)}` };
+    const data = JSON.parse(text);
+    if (!data?.ok || !data.generation) return { error: "invalid_response" };
+    return { generation: data.generation, promptScore: data.promptScore, repaired: data.repaired };
+  } catch (error) {
+    return { error: error?.name || "fetch_failed" };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function maybeGenerateServaAsset(env, generation) {
+  if (env.SERVA_GENERATE_ASSETS !== "true" || !env.SERVA_BASE_URL || !env.SERVA_SITE_TOKEN) {
+    return null;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Number(env.SERVA_ASSET_TIMEOUT_MS || env.SERVA_TIMEOUT_MS || 55000));
+  try {
+    const response = await fetch(servaUrl(env, "/v1/serva/sites/gitbuck/assets"), {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${env.SERVA_SITE_TOKEN}`
+      },
+      body: JSON.stringify({
+        generationId: generation.id,
+        assetPrompt: generation.assetPrompt,
+        width: Number(env.SERVA_ASSET_WIDTH || 1024),
+        height: Number(env.SERVA_ASSET_HEIGHT || 1024),
+        style: env.SERVA_ASSET_STYLE || "lo-fi anime control room, no text"
+      })
+    });
+    const text = await response.text();
+    if (!response.ok) return { ok: false, error: `http_${response.status}:${text.slice(0, 120)}` };
+    const data = JSON.parse(text);
+    const assetUrl = safeAssetUrl(data.assetUrl, env);
+    return { ok: Boolean(data.ok), contentType: data.contentType, assetUrl };
+  } catch (error) {
+    return { ok: false, error: error?.name || "fetch_failed" };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function servaUrl(env, path) {
+  const base = String(env.SERVA_BASE_URL || "").replace(/\/+$/, "");
+  if (base.endsWith("/v1") && path.startsWith("/v1/")) {
+    return base + path.slice(3);
+  }
+  return base + path;
+}
 
 async function callOpenRouter(env, model, prompt, mode, world, prior, quality) {
   const controller = new AbortController();
@@ -328,6 +421,7 @@ function validateRewire(payload) {
     energy: ALLOWED_ENERGY.has(safe.energy) ? safe.energy : "pulse",
     artDirection: clean(safe.artDirection, 130) || `${hudTitle} staged as a lo-fi room with tactile controls and visible machine state.`,
     assetPrompt: clean(safe.assetPrompt, 240) || `High-fidelity lo-fi anime control room for ${hudTitle}, dusk window light, detailed desk objects, cinematic composition, no text.`,
+    assetUrl: "",
     headline: clean(safe.headline, 72) || "I build tools that make agents do real work.",
     lede,
     hudTitle,
@@ -388,9 +482,9 @@ function clean(value, maxLength) {
 
 function withGenerationMeta(payload, prompt) {
   const generation = validateRewire(payload);
-  generation.id = crypto.randomUUID();
+  generation.id = clean(payload?.id, 64) || crypto.randomUUID();
   generation.prompt = clean(prompt, 220);
-  generation.createdAt = new Date().toISOString();
+  generation.createdAt = clean(payload?.createdAt, 40) || new Date().toISOString();
   return generation;
 }
 
@@ -428,7 +522,21 @@ async function storeGeneration(env, generation) {
 function validateStoredGeneration(payload) {
   const safe = validateRewire(payload);
   if (!safe.id || !safe.createdAt) return null;
+  safe.assetUrl = safeAssetUrl(payload?.assetUrl);
   return safe;
+}
+
+function safeAssetUrl(value, env) {
+  const raw = clean(value, 500);
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (!["https:", "http:"].includes(url.protocol)) return "";
+    if (env?.GITBUCK_ASSET_PUBLIC_BASE && !raw.startsWith(env.GITBUCK_ASSET_PUBLIC_BASE)) return "";
+    return raw;
+  } catch {
+    return "";
+  }
 }
 
 function scoreRewire(generation, prompt) {

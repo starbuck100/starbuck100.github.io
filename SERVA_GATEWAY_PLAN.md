@@ -2,6 +2,27 @@
 
 Ziel: GitBuck bleibt eine statische GitHub-Pages-Seite. Dynamische Site- und Asset-Generierung laeuft optional ueber Serva auf dem lokalen AI-PC, sicher erreichbar ueber einen Cloudflare Worker plus Tunnel.
 
+## Umsetzungsstand 2026-04-27
+
+Implemented:
+
+- Serva: `serva/site_rewrite.py`, `GET /v1/serva/capabilities`,
+  `POST /v1/serva/sites/gitbuck/rewire`, `POST /v1/serva/sites/gitbuck/assets`.
+- Serva: Token-Auth per `SERVA_SITE_TOKEN`, GitBuck-Schema-Validation,
+  Prompt-Fit-Scoring, Repair-Pass, und Asset-Normalisierung ueber die bestehende
+  Image-Skill-Pipeline.
+- GitBuck Worker: Serva-first fuer `/rewire`, OpenRouter-Fallback, lokale
+  schema-sichere Fallback-Generation, KV-Library bleibt bei maximal 7 Eintraegen.
+- GitBuck Frontend: optionales `assetUrl`-Preview-Feld fuer Worker-vertrauenswuerdige
+  Raster-Assets.
+
+Nicht automatisch umgesetzt:
+
+- Kein Cloudflare-Tunnel wird blind angelegt.
+- Keine Secrets werden committed.
+- R2 ist vorbereitet als naechster sauberer Asset-Persistenzpfad, aber nicht
+  als verpflichtende Default-Abhaengigkeit aktiviert.
+
 ## Aktueller Serva-Stand
 
 Serva ist bereits ein passender lokaler Gateway-Kern. Im lokalen Checkout
