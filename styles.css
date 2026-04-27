@@ -22,6 +22,10 @@ html {
   scroll-behavior: smooth;
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 body {
   margin: 0;
   color: #fff6df;
@@ -288,6 +292,7 @@ h3 {
     linear-gradient(180deg, rgba(255, 246, 223, 0.16), rgba(28, 18, 28, 0.46));
   box-shadow: 12px 12px 0 color-mix(in oklch, var(--active) 36%, transparent);
   backdrop-filter: blur(12px);
+  view-transition-name: mode-hud;
 }
 
 .hud-top {
@@ -352,6 +357,164 @@ h3 {
   border-top: 1px solid rgba(255, 232, 205, 0.18);
   background:
     linear-gradient(180deg, rgba(244, 220, 199, 0.95), rgba(229, 190, 170, 0.94));
+}
+
+.world-tour {
+  position: relative;
+  min-height: 430svh;
+  color: #fff6df;
+  background:
+    linear-gradient(180deg, rgba(10, 8, 15, 0.9), rgba(30, 18, 28, 0.94)),
+    url("assets/lofi-gitbuck-room.webp") center / cover fixed no-repeat;
+  border-top: 1px solid rgba(255, 232, 205, 0.18);
+  overflow: clip;
+}
+
+.world-tour::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--active) 42%, transparent), transparent 26rem),
+    repeating-linear-gradient(180deg, transparent 0 8px, rgba(255, 232, 205, 0.1) 9px);
+}
+
+.world-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(6rem, 12vw, 9rem) clamp(1rem, 4vw, 3rem);
+  pointer-events: none;
+}
+
+.world-panel {
+  width: min(44rem, 100%);
+  padding: clamp(1rem, 2.6vw, 2rem);
+  border: 1px solid rgba(255, 232, 205, 0.34);
+  background: linear-gradient(180deg, rgba(18, 13, 24, 0.72), rgba(18, 13, 24, 0.38));
+  box-shadow: 14px 14px 0 rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+
+.world-panel h2 {
+  font-size: clamp(2.5rem, 5.4vw, 5.2rem);
+}
+
+.world-panel p {
+  color: rgba(255, 244, 222, 0.76);
+  font-size: clamp(1rem, 1.45vw, 1.22rem);
+}
+
+.world-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.world-progress span {
+  min-height: 3.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0.45rem;
+  border: 1px solid rgba(255, 232, 205, 0.26);
+  background: rgba(255, 246, 223, 0.08);
+  color: rgba(255, 244, 222, 0.68);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.world-progress span.is-active {
+  color: var(--ink);
+  background: var(--active);
+  border-color: var(--active);
+}
+
+.world-steps {
+  position: relative;
+  z-index: 1;
+  margin-top: -100svh;
+  padding-top: 94svh;
+  pointer-events: none;
+}
+
+.world-step {
+  min-height: 92svh;
+  display: flex;
+  align-items: center;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 4vw, 3rem);
+  pointer-events: none;
+}
+
+.world-step.right {
+  justify-content: flex-end;
+}
+
+.world-card {
+  width: min(26rem, 100%);
+  padding: 1rem;
+  border: 1px solid rgba(255, 232, 205, 0.32);
+  background: rgba(14, 10, 18, 0.68);
+  box-shadow: 9px 9px 0 rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.world-card span,
+.room-popover span {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--active);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.world-card p {
+  margin-bottom: 0;
+  color: rgba(255, 244, 222, 0.74);
+}
+
+.room-popover {
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1.2rem;
+  color: #fff6df;
+  border: 1px solid rgba(255, 232, 205, 0.42);
+  background: rgba(16, 11, 22, 0.92);
+  box-shadow: 18px 18px 0 rgba(0, 0, 0, 0.28);
+}
+
+.room-popover::backdrop {
+  background: rgba(8, 6, 12, 0.56);
+  backdrop-filter: blur(6px);
+}
+
+.room-popover h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+}
+
+.room-map-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.room-map-grid span {
+  margin: 0;
+  padding: 0.8rem;
+  color: var(--ink);
+  background: var(--active);
 }
 
 .play-band {
@@ -567,6 +730,30 @@ h3 {
   transition: opacity 700ms ease, transform 700ms ease;
 }
 
+::view-transition-group(root),
+::view-transition-group(mode-hud) {
+  animation-duration: 420ms;
+}
+
+@supports (animation-timeline: view()) {
+  .world-card {
+    animation: world-card-in both ease-out;
+    animation-timeline: view();
+    animation-range: entry 15% cover 42%;
+  }
+}
+
+@keyframes world-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(4rem) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
@@ -596,6 +783,10 @@ h3 {
     margin-left: auto;
     margin-right: auto;
   }
+
+  .world-tour {
+    min-height: 390svh;
+  }
 }
 
 @media (max-width: 700px) {
@@ -611,7 +802,7 @@ h3 {
   .nav {
     flex-wrap: wrap;
     justify-content: flex-end;
-    max-width: 12rem;
+    max-width: 13rem;
     row-gap: 0.15rem;
   }
 
@@ -627,8 +818,20 @@ h3 {
   .mode-deck,
   .work-grid,
   .project-rail,
-  .stack-row {
+  .stack-row,
+  .world-progress,
+  .room-map-grid {
     grid-template-columns: 1fr;
+  }
+
+  .world-sticky {
+    align-items: start;
+    padding-top: 6.5rem;
+  }
+
+  .world-panel {
+    padding: 1rem;
+    background: rgba(16, 11, 22, 0.9);
   }
 
   .mode-button {

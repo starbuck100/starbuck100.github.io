@@ -23,6 +23,29 @@ const modes = {
   }
 };
 
+const worldScenes = {
+  window: {
+    mode: "agents",
+    title: "Move through the room. The system changes with you.",
+    copy: "Start at the window, drop into the agent deck, pass the media bench, then land at the terminal surface."
+  },
+  agents: {
+    mode: "agents",
+    title: "The agent deck comes online.",
+    copy: "The room stops being a backdrop and becomes an operating loop: plan, edit, test, review, remember."
+  },
+  media: {
+    mode: "media",
+    title: "The media bench keeps evidence attached.",
+    copy: "Transcripts, OCR, frame samples, stems, and source media stay connected while the scroll moves deeper."
+  },
+  terminal: {
+    mode: "terminal",
+    title: "The terminal surface becomes the product.",
+    copy: "The last station is the usable surface: status lines, TUIs, compact controls, and visual verification."
+  }
+};
+
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const canvas = document.querySelector("#stage3d");
 const modeTitle = document.querySelector("#modeTitle");
@@ -41,6 +64,8 @@ let ringTwo;
 let nodeGroup;
 let sparkles;
 let activeColor = new THREE.Color(modes.agents.color);
+let worldProgress = 0;
+let currentWorld = "window";
 
 initInterface();
 initScene();
@@ -50,6 +75,8 @@ function initInterface() {
   modeButtons.forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });
+
+  initWorldTour();
 
   document.querySelectorAll(".tilt-card").forEach((card) => {
     card.addEventListener("pointermove", (event) => {
@@ -79,7 +106,7 @@ function initInterface() {
   }, { passive: true });
 }
 
-function setMode(modeName) {
+function applyMode(modeName) {
   const mode = modes[modeName] || modes.agents;
   document.body.dataset.mode = modeName;
   document.documentElement.style.setProperty("--active", mode.color);
@@ -92,6 +119,59 @@ function setMode(modeName) {
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", String(active));
   });
+}
+
+function setMode(modeName, useTransition = true) {
+  if (document.body.dataset.mode === modeName) return;
+  if (useTransition && document.startViewTransition) {
+    document.startViewTransition(() => applyMode(modeName));
+    return;
+  }
+  applyMode(modeName);
+}
+
+function initWorldTour() {
+  const tour = document.querySelector(".world-tour");
+  const title = document.querySelector("#world-title");
+  const copy = document.querySelector("#world-copy");
+  const dots = [...document.querySelectorAll("[data-dot]")];
+  const steps = [...document.querySelectorAll(".world-step")];
+  if (!tour || !title || !copy || steps.length === 0) return;
+
+  function setWorld(sceneName) {
+    const sceneData = worldScenes[sceneName] || worldScenes.window;
+    if (currentWorld === sceneName) return;
+    currentWorld = sceneName;
+    const update = () => {
+      document.body.dataset.world = sceneName;
+      title.textContent = sceneData.title;
+      copy.textContent = sceneData.copy;
+      dots.forEach((dot) => dot.classList.toggle("is-active", dot.dataset.dot === sceneName));
+    };
+    if (document.startViewTransition) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
+    setMode(sceneData.mode, false);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setWorld(visible.target.dataset.world);
+  }, { threshold: [0.22, 0.44, 0.66] });
+  steps.forEach((step) => observer.observe(step));
+
+  function updateProgress() {
+    const rect = tour.getBoundingClientRect();
+    const travel = Math.max(1, rect.height - window.innerHeight);
+    worldProgress = Math.min(1, Math.max(0, -rect.top / travel));
+  }
+  updateProgress();
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  window.addEventListener("resize", updateProgress, { passive: true });
 }
 
 function initScene() {
@@ -200,6 +280,11 @@ function resize() {
   rig.scale.setScalar(scale);
   rig.position.x = width < 760 ? 2.35 : width < 900 ? 0.55 : 1.8;
   rig.position.y = width < 760 ? -1.35 : width < 900 ? -0.45 : 0;
+  rig.userData.base = {
+    x: rig.position.x,
+    y: rig.position.y,
+    scale
+  };
 }
 
 function animate() {
@@ -210,7 +295,16 @@ function animate() {
   ringTwo.material.color.lerp(activeColor, 0.08);
   ringTwo.material.emissive.lerp(activeColor, 0.08);
 
-  rig.rotation.y += 0.003 * speed;
+  const base = rig.userData.base || { x: 1.8, y: 0, scale: 1 };
+  const scrollOrbit = Math.sin(worldProgress * Math.PI * 2) * 0.72;
+  const scrollLift = Math.sin(worldProgress * Math.PI) * 0.45;
+  const targetScale = base.scale * (1 + worldProgress * 0.2);
+  rig.position.x += (base.x + scrollOrbit - rig.position.x) * 0.035;
+  rig.position.y += (base.y + scrollLift - worldProgress * 0.28 - rig.position.y) * 0.035;
+  rig.scale.x += (targetScale - rig.scale.x) * 0.035;
+  rig.scale.y += (targetScale - rig.scale.y) * 0.035;
+  rig.scale.z += (targetScale - rig.scale.z) * 0.035;
+  rig.rotation.y += (0.003 + worldProgress * 0.0025) * speed;
   rig.rotation.x += (pointer.y * 0.38 - rig.rotation.x) * 0.045;
   rig.rotation.z += (pointer.x * -0.18 - rig.rotation.z) * 0.04;
   core.rotation.x = elapsed * 0.44 * speed;

@@ -49,6 +49,7 @@
       <span>starbuck100</span>
     </a>
     <nav class="nav" aria-label="Primary navigation">
+      <a href="#world">World</a>
       <a href="#play">Play</a>
       <a href="#work">Work</a>
       <a href="#systems">Systems</a>
@@ -68,7 +69,7 @@
         </p>
         <div class="hero-actions" aria-label="Primary links">
           <a class="button primary" href="https://github.com/starbuck100">Open GitHub</a>
-          <a class="button" href="#play">Touch the interface</a>
+          <a class="button" href="#world">Enter the room</a>
         </div>
       </div>
 
@@ -81,6 +82,65 @@
           <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
         </div>
         <p id="modeCopy">Plan, edit, test, review, remember, and hand off without losing the thread.</p>
+      </div>
+    </section>
+
+    <section id="world" class="world-tour" aria-labelledby="world-title">
+      <div class="world-sticky">
+        <div class="world-panel reveal">
+          <p class="section-kicker">Scroll-driven room tour</p>
+          <h2 id="world-title">Move through the room. The system changes with you.</h2>
+          <p id="world-copy">
+            Start at the window, drop into the agent deck, pass the media bench,
+            then land at the terminal surface.
+          </p>
+          <div class="world-progress" aria-label="Scroll tour progress">
+            <span class="is-active" data-dot="window">Window</span>
+            <span data-dot="agents">Agents</span>
+            <span data-dot="media">Media</span>
+            <span data-dot="terminal">Terminal</span>
+          </div>
+          <button class="button room-button" type="button" popovertarget="room-map">Open room map</button>
+        </div>
+      </div>
+
+      <div class="world-steps" aria-label="Room tour chapters">
+        <article class="world-step" data-world="window" data-mode="agents">
+          <div class="world-card">
+            <span>01 / Window</span>
+            <h3>The calm surface</h3>
+            <p>Lo-fi skyline, warm light, and the public front door. The page starts like a wallpaper, not a dashboard.</p>
+          </div>
+        </article>
+        <article class="world-step right" data-world="agents" data-mode="agents">
+          <div class="world-card">
+            <span>02 / Agent deck</span>
+            <h3>Build loops wake up</h3>
+            <p>Scroll pulls the 3D rig forward: planning, edits, tests, review gates, and memory become one operating loop.</p>
+          </div>
+        </article>
+        <article class="world-step" data-world="media" data-mode="media">
+          <div class="world-card">
+            <span>03 / Media bench</span>
+            <h3>Evidence stays attached</h3>
+            <p>Transcripts, OCR, frame samples, audio stems, and source media stay linked instead of becoming loose notes.</p>
+          </div>
+        </article>
+        <article class="world-step right" data-world="terminal" data-mode="terminal">
+          <div class="world-card">
+            <span>04 / Terminal surface</span>
+            <h3>The tool becomes usable</h3>
+            <p>Status lines, TUI surfaces, and visual verification turn backend work into something an operator can trust.</p>
+          </div>
+        </article>
+      </div>
+
+      <div id="room-map" class="room-popover" popover>
+        <h3>Room map</h3>
+        <p>This overlay is native HTML Popover. The scroll tour stays static-host friendly: no backend, no build, no framework.</p>
+        <div class="room-map-grid" aria-hidden="true">
+          <span>Window</span><span>Agent deck</span><span>Media bench</span><span>Terminal</span>
+        </div>
       </div>
     </section>
 
