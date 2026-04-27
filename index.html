@@ -148,13 +148,18 @@
       <div class="play-copy reveal">
         <p class="section-kicker">Interactive mode switch</p>
         <h2 id="play-title">Press a mode. The page rewires itself.</h2>
-        <p>
+        <p id="play-copy">
           This is still a simple static GitHub Pages site. No backend, no build step,
           just HTML, CSS, JavaScript, and a Three.js scene loaded in the browser.
         </p>
       </div>
 
       <form class="rewire-console reveal" id="rewireForm" aria-label="AI rewire console">
+        <output class="rewire-result" id="rewireResult" hidden>
+          <span>AI patch applied</span>
+          <strong id="rewireResultTitle">Room signal updated</strong>
+          <p id="rewireResultCopy">The visible page state changed.</p>
+        </output>
         <label for="rewirePrompt">Ask the room to rewire itself</label>
         <div class="rewire-input-row">
           <input id="rewirePrompt" name="prompt" maxlength="220" autocomplete="off" placeholder="make it feel like a midnight media lab">

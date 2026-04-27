@@ -58,8 +58,13 @@ const modeButtons = [...document.querySelectorAll(".mode-button")];
 const rewireForm = document.querySelector("#rewireForm");
 const rewirePrompt = document.querySelector("#rewirePrompt");
 const rewireStatus = document.querySelector("#rewireStatus");
+const rewireResult = document.querySelector("#rewireResult");
+const rewireResultTitle = document.querySelector("#rewireResultTitle");
+const rewireResultCopy = document.querySelector("#rewireResultCopy");
 const heroTitle = document.querySelector("#hero-title");
 const heroLede = document.querySelector(".lede");
+const playTitle = document.querySelector("#play-title");
+const playCopy = document.querySelector("#play-copy");
 const pointer = { x: 0, y: 0, active: false };
 const clock = new THREE.Clock();
 
@@ -158,13 +163,31 @@ async function fetchRewire(request) {
 
 function applyRewire(payload, status) {
   const safe = validateRewire(payload);
+  const playHeadline = `AI rewire: ${safe.hudTitle}`;
   if (heroTitle) heroTitle.textContent = safe.headline;
   if (heroLede) heroLede.textContent = safe.lede;
+  if (playTitle) playTitle.textContent = playHeadline;
+  if (playCopy) playCopy.textContent = safe.lede;
+  playCopy?.parentElement?.classList.add("is-ai-patched");
+  if (rewireResult) rewireResult.hidden = false;
+  if (rewireResultTitle) rewireResultTitle.textContent = safe.hudTitle;
+  if (rewireResultCopy) rewireResultCopy.textContent = safe.hudCopy;
+  if (rewireForm) {
+    rewireForm.classList.remove("is-rewired");
+    void rewireForm.offsetWidth;
+    rewireForm.classList.add("is-rewired");
+  }
   modeLockUntil = Date.now() + 6000;
   setMode(safe.mode, false);
   modeTitle.textContent = safe.hudTitle;
   modeCopy.textContent = safe.hudCopy;
-  setRewireStatus(status);
+  setRewireStatus(`${status} Visible section, hero, HUD, and mode are now patched.`);
+  requestAnimationFrame(() => {
+    rewireResult?.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "center"
+    });
+  });
 }
 
 function validateRewire(payload) {

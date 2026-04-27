@@ -521,7 +521,8 @@ h3 {
 .play-band {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(18rem, 1.05fr);
-  gap: clamp(2rem, 6vw, 5rem);
+  column-gap: clamp(2rem, 6vw, 5rem);
+  row-gap: clamp(1.25rem, 3vw, 2.25rem);
   align-items: end;
   padding: clamp(4rem, 9vw, 8rem) clamp(1rem, 4vw, 3rem);
 }
@@ -544,6 +545,15 @@ h3 {
   margin-right: 0;
 }
 
+.play-copy h2 {
+  max-width: 12ch;
+}
+
+.play-copy.is-ai-patched h2 {
+  max-width: 13ch;
+  font-size: clamp(2.2rem, 4.8vw, 4.9rem);
+}
+
 .rewire-console {
   grid-column: 1 / -1;
   width: 100%;
@@ -552,6 +562,45 @@ h3 {
   border: 2px solid rgba(23, 16, 25, 0.9);
   background: linear-gradient(135deg, rgba(255, 241, 205, 0.9), rgba(234, 191, 176, 0.9));
   box-shadow: 8px 8px 0 rgba(23, 20, 15, 0.16);
+}
+
+.rewire-console.is-rewired {
+  animation: patch-pop 820ms ease-out;
+}
+
+.rewire-result {
+  display: block;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  color: #fff6df;
+  border: 2px solid var(--ink);
+  background: linear-gradient(135deg, rgba(23, 16, 25, 0.94), color-mix(in oklch, var(--active) 34%, #171019));
+}
+
+.rewire-result[hidden] {
+  display: none;
+}
+
+.rewire-result span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--active);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.rewire-result strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 3.3rem);
+  line-height: 0.92;
+}
+
+.rewire-result p {
+  margin: 0;
+  color: rgba(255, 244, 222, 0.78);
 }
 
 .rewire-console label {
@@ -584,6 +633,25 @@ h3 {
   color: color-mix(in oklch, var(--ink) 62%, var(--muted));
   font-size: 0.88rem;
   font-weight: 760;
+}
+
+.rewire-console .rewire-result p {
+  color: rgba(255, 244, 222, 0.84);
+}
+
+@keyframes patch-pop {
+  0% {
+    transform: translateY(0);
+    box-shadow: 8px 8px 0 rgba(23, 20, 15, 0.16);
+  }
+  45% {
+    transform: translate(-4px, -4px);
+    box-shadow: 16px 16px 0 color-mix(in oklch, var(--active) 36%, transparent);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 8px 8px 0 rgba(23, 20, 15, 0.16);
+  }
 }
 
 .mode-deck {
