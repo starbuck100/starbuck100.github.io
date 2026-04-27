@@ -1,105 +1,226 @@
-<!DOCTYPE html>
-<html lang="de">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Portfolio</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GitBuck - Agent Systems, Local AI Ops, Media Intelligence</title>
+  <meta name="description" content="GitBuck builds interactive agent workflows, local-first AI systems, media intelligence pipelines, and terminal-native tools.">
+  <meta name="theme-color" content="#f4efe2">
+  <meta property="og:title" content="GitBuck - Systems for agents, media, and machines">
+  <meta property="og:description" content="A static but fully animated GitHub Pages profile with 3D, agent workflows, local AI ops, and media pipelines.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://starbuck100.github.io/">
+  <meta property="og:image" content="https://starbuck100.github.io/assets/lofi-gitbuck-room.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23171019'/%3E%3Crect x='9' y='9' width='46' height='46' fill='none' stroke='%23ff9d54' stroke-width='5'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial' font-size='18' font-weight='900' fill='%23fff1cd'%3EGB%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@72..112,400..900&family=Newsreader:opsz,wght@6..72,500..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "GitBuck",
+    "url": "https://starbuck100.github.io/",
+    "sameAs": ["https://github.com/starbuck100"],
+    "knowsAbout": [
+      "AI agents",
+      "local AI infrastructure",
+      "developer tooling",
+      "media transcription",
+      "OCR pipelines",
+      "terminal interfaces",
+      "automation"
+    ]
+  }
+  </script>
 </head>
-<body>
-    <div class="container">
-        <header class="pixel-border">
-            <h1 class="pixel-text">Mein Portfolio</h1>
-            <nav>
-                <ul>
-                    <li><a href="#about">Über Mich</a></li>
-                    <li><a href="#projects">Projekte</a></li>
-                    <li><a href="#contact">Kontakt</a></li>
-                </ul>
-            </nav>
-        </header>
+<body data-mode="agents">
+  <a class="skip-link" href="#work">Skip to content</a>
+  <div class="scene-shell" aria-hidden="true">
+    <canvas id="stage3d"></canvas>
+    <div class="scanline"></div>
+  </div>
 
-        <section id="about" class="pixel-border">
-            <div class="about-text">
-                <h2 class="pixel-text">Über Mich</h2>
-                <p>Als leidenschaftlicher Entwickler und KI-Enthusiast arbeite ich an verschiedenen Projekten im Bereich Machine Learning, Audio Processing und Softwareentwicklung. Mein Fokus liegt besonders auf der Entwicklung von KI-gestützten Audiotools und der Integration von Machine Learning in alltägliche Anwendungen.</p>
-                <p class="social-links">
-                    <a href="https://github.com/starbuck100" class="btn">🔗 GitHub Profil</a>
-                </p>
-            </div>
-            
-            <div class="skills-section short-row">
-                <div class="skill-tree">
-                    <div class="tree-branch">
-                        <span class="branch-title">🔧 Entwicklung & Programmierung</span>
-                        <ul class="branch-items">
-                            <li>├── Python</li>
-                            <li>├── NodeJS</li>
-                        </ul>
-                    </div>
-                </div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="GitBuck home">
+      <span class="brand-stamp">GB</span>
+      <span>starbuck100</span>
+    </a>
+    <nav class="nav" aria-label="Primary navigation">
+      <a href="#play">Play</a>
+      <a href="#work">Work</a>
+      <a href="#systems">Systems</a>
+      <a href="#proof">Proof</a>
+    </nav>
+  </header>
 
-                <div class="skill-tree">
-                    <div class="tree-branch">
-                        <span class="branch-title">🤖 KI & Audio Processing</span>
-                        <ul class="branch-items">
-                            <li>├── RVC Voice Conversion</li>
-                            <li>├── ComfyUI & Image Generation</li>
-                            <li>└── FL Studio</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Lo-fi operator room / static WebGL page / agent systems map</p>
+        <h1 id="hero-title">I build tools that make agents do real work.</h1>
+        <p class="lede">
+          GitBuck is the public control surface for a Windows-first, local-first AI lab:
+          coding agents, MCP tooling, GPU services, OCR and transcription pipelines,
+          audio tooling, terminal interfaces, and operator workflows that survive contact with reality.
+        </p>
+        <div class="hero-actions" aria-label="Primary links">
+          <a class="button primary" href="https://github.com/starbuck100">Open GitHub</a>
+          <a class="button" href="#play">Touch the interface</a>
+        </div>
+      </div>
 
-            <div class="skills-section square-row">
-                <div class="skill-tree">
-                    <div class="tree-branch">
-                        <span class="branch-title">💻 System & Tools</span>
-                        <ul class="branch-items">
-                            <li>├── Windows</li>
-                            <li>├── Linux Ubuntu</li>
-                        </ul>
-                    </div>
-                </div>
+      <div class="hud reveal" aria-label="Live system readout">
+        <div class="hud-top">
+          <span>ROOM SIGNAL</span>
+          <strong id="modeTitle">Agent build loop</strong>
+        </div>
+        <div class="hud-meter" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <p id="modeCopy">Plan, edit, test, review, remember, and hand off without losing the thread.</p>
+      </div>
+    </section>
 
-                <div class="skill-tree">
-                    <div class="tree-branch">
-                        <span class="branch-title">🌐 Sprachen & Kommunikation</span>
-                        <ul class="branch-items">
-                            <li>├── Deutsch (Muttersprache)</li>
-                            <li>├── Englisch (Fließend)</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <section id="play" class="play-band" aria-labelledby="play-title">
+      <div class="play-copy reveal">
+        <p class="section-kicker">Interactive mode switch</p>
+        <h2 id="play-title">Press a mode. The page rewires itself.</h2>
+        <p>
+          This is still a simple static GitHub Pages site. No backend, no build step,
+          just HTML, CSS, JavaScript, and a Three.js scene loaded in the browser.
+        </p>
+      </div>
 
-        <section id="projects" class="pixel-border">
-            <h2 class="pixel-text">Meine Projekte</h2>
-            <div class="project-grid">
-                <article class="project-card">
-                    <div class="project-image">
-                        <img src="images/VoiceShiftDE.jpg" alt="VoiceShiftDE Logo" class="pixel-image">
-                    </div>
-                    <h3>VoiceShift.de</h3>
-                    <p>Ein innovativer Discord-Server mit KI-gesteuerten Bots für kreative Audiobearbeitung:
-                       Text-zu-Sprache Konvertierung, KI-Bildgenerierung und 
-                       Singing-Voice-Conversion basierend auf RVC-Technologie.</p>
-                    <a href="https://voiceshiftde.site" class="btn" target="_blank">Zur Website</a>
-                </article>
-            </div>
-        </section>
+      <div class="mode-deck reveal" role="group" aria-label="Choose operating mode">
+        <button class="mode-button is-active" type="button" data-mode="agents" aria-pressed="true">
+          <span>01</span>
+          Agents
+        </button>
+        <button class="mode-button" type="button" data-mode="media" aria-pressed="false">
+          <span>02</span>
+          Media
+        </button>
+        <button class="mode-button" type="button" data-mode="ops" aria-pressed="false">
+          <span>03</span>
+          Ops
+        </button>
+        <button class="mode-button" type="button" data-mode="terminal" aria-pressed="false">
+          <span>04</span>
+          Terminal
+        </button>
+      </div>
+    </section>
 
-        <section id="contact" class="pixel-border">
-            <h2 class="pixel-text">Kontakt</h2>
-            <p>Sie können mich hier erreichen:</p>
-            <div class="social-links">
-                <a href="https://github.com/starbuck100" class="btn">GitHub</a>
-                <a href="mailto:ai.rap.official@proton.me" class="btn">Email</a>
-                <a href="https://discord.gg/voiceshiftde-1121134864310226975" class="btn">Discord</a>
-            </div>
-        </section>
-    </div>
+    <section id="work" class="work-band" aria-labelledby="work-title">
+      <div class="section-head reveal">
+        <p class="section-kicker">What replaced the old portfolio</p>
+        <h2 id="work-title">No retro template. A kinetic map of the current work.</h2>
+      </div>
+
+      <div class="work-grid">
+        <article class="work-card tilt-card reveal">
+          <span>01 / Agent layer</span>
+          <h3>Agentic developer workflows</h3>
+          <p>Codex, Claude Code, MCP servers, memory, review gates, and handoff surfaces that turn chat into repeatable execution.</p>
+        </article>
+        <article class="work-card red tilt-card reveal">
+          <span>02 / Machine room</span>
+          <h3>Local AI operations</h3>
+          <p>Windows-first control, remote Linux workers, GPU services, model defaults, startup reliability, and operator-ready runbooks.</p>
+        </article>
+        <article class="work-card blue tilt-card reveal">
+          <span>03 / Perception</span>
+          <h3>Media intelligence</h3>
+          <p>Video transcription, OCR, frame sampling, audio separation, ffmpeg pipelines, and dashboards with source-linked evidence.</p>
+        </article>
+        <article class="work-card green tilt-card reveal">
+          <span>04 / Surface</span>
+          <h3>Terminal products</h3>
+          <p>Status lines, ASCII/TUI interfaces, visual terminal verification, and compact tools that fit where engineers actually work.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="systems" class="systems-band" aria-labelledby="systems-title">
+      <div class="systems-copy reveal">
+        <p class="section-kicker">Operating stack</p>
+        <h2 id="systems-title">A personal lab wired like a production floor.</h2>
+        <p>
+          The through-line is practical autonomy: tools that remember context,
+          recover from bad states, verify visible output, and leave a clean path for the next run.
+        </p>
+      </div>
+
+      <div class="stack-board reveal" role="list" aria-label="Operating stack">
+        <div class="stack-row" role="listitem">
+          <span>Agent layer</span>
+          <strong>Codex, Claude Code, custom MCP, review automation</strong>
+        </div>
+        <div class="stack-row" role="listitem">
+          <span>Runtime layer</span>
+          <strong>Windows desktop, remote Linux services, local GPU workflows</strong>
+        </div>
+        <div class="stack-row" role="listitem">
+          <span>Media layer</span>
+          <strong>Whisper, OCR, ffmpeg, frame sampling, audio separation</strong>
+        </div>
+        <div class="stack-row" role="listitem">
+          <span>Product layer</span>
+          <strong>TypeScript, Python, Rust, shell, browser UI, CLI/TUI</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="proof" class="proof-band" aria-labelledby="proof-title">
+      <div class="proof-copy reveal">
+        <p class="section-kicker">Public proof points</p>
+        <h2 id="proof-title">Small public surface, serious private velocity.</h2>
+        <p>
+          Most operational work stays private. The public repos show the direction:
+          live developer context, structured prompting, and this page as the current front door.
+        </p>
+      </div>
+
+      <div class="project-rail">
+        <a class="project-card tilt-card reveal" href="https://github.com/starbuck100/statusline-factory">
+          <span>Public repo</span>
+          <h3>statusline-factory</h3>
+          <p>Modular Claude Code status line blocks for training progress, server health, and GPU state.</p>
+        </a>
+        <a class="project-card tilt-card reveal" href="https://github.com/starbuck100/session-notation-song-prompting">
+          <span>Public repo</span>
+          <h3>session notation prompting</h3>
+          <p>Prompting experiments around structured song and session notation.</p>
+        </a>
+        <a class="project-card tilt-card reveal" href="https://github.com/starbuck100/starbuck100.github.io">
+          <span>This site</span>
+          <h3>static WebGL profile</h3>
+          <p>A GitHub Pages profile rebuilt from old AI-era copy into a current, interactive system map.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="manifesto reveal" aria-label="Working principle">
+      <p>Build the tool. Run the tool. Look at the real output. Fix what still feels fake.</p>
+    </section>
+
+    <section class="contact-band" aria-labelledby="contact-title">
+      <div class="contact-inner reveal">
+        <p class="section-kicker">Contact</p>
+        <h2 id="contact-title">If it needs agents, local AI, media pipelines, or a better operator surface, I probably care.</h2>
+        <a class="button primary" href="https://github.com/starbuck100">Talk through GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>GitBuck / starbuck100</span>
+    <span>Static GitHub Pages, animated in-browser.</span>
+  </footer>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>

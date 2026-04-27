@@ -1,57 +1,20 @@
-# Retro Portfolio Website
+# starbuck100.github.io
 
-Eine statische Portfolio-Website im Retro-Bit-Style, gehostet auf GitHub Pages.
+Public profile site for GitBuck / starbuck100.
 
-## Setup-Anleitung für GitHub Pages
+The previous portfolio copy was replaced. The current page is a static GitHub Pages site with:
 
-1. Erstellen Sie ein neues Repository auf GitHub:
-   - Gehen Sie zu [GitHub](https://github.com)
-   - Klicken Sie auf "New Repository"
-   - Nennen Sie das Repository `[IhrUsername].github.io`
-   - Setzen Sie es auf "Public"
-   - Erstellen Sie das Repository
+- a full-screen Three.js hero scene
+- interactive mode switching
+- animated reveal states and pointer-reactive cards
+- current positioning around agent workflows, local AI operations, media pipelines, and terminal-native tools
 
-2. Lokales Repository einrichten:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/[IhrUsername]/[IhrUsername].github.io.git
-   git push -u origin main
-   ```
+## Run locally
 
-3. GitHub Pages aktivieren:
-   - Gehen Sie zu den Repository-Einstellungen
-   - Scrollen Sie zu "GitHub Pages"
-   - Wählen Sie unter "Source" den "main" Branch
-   - Klicken Sie auf "Save"
+Open `index.html` directly for the static fallback, or serve the folder so the ES module import works:
 
-Ihre Website wird nun unter `https://[IhrUsername].github.io` verfügbar sein.
-
-## Anpassung der Website
-
-1. Bearbeiten Sie die `index.html`:
-   - Aktualisieren Sie den Inhalt im "Über Mich" Bereich
-   - Fügen Sie Ihre eigenen Projekte hinzu
-   - Aktualisieren Sie die Kontaktinformationen
-
-2. Passen Sie das Design in `styles.css` an:
-   - Ändern Sie die Farbvariablen im `:root` Selektor
-   - Passen Sie die Schriftarten und Größen an
-   - Modifizieren Sie die Animationen und Effekte
-
-## Lokale Entwicklung
-
-Um die Website lokal zu testen, öffnen Sie einfach die `index.html` in Ihrem Browser.
-
-## Aktualisierungen veröffentlichen
-
-Nach jeder Änderung:
 ```bash
-git add .
-git commit -m "Beschreibung der Änderungen"
-git push
+python -m http.server 4173
 ```
 
-Die Änderungen werden automatisch auf GitHub Pages aktualisiert (kann einige Minuten dauern).
+GitHub Pages serves from `main:/`.
