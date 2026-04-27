@@ -15,13 +15,29 @@ Implemented:
   schema-sichere Fallback-Generation, KV-Library bleibt bei maximal 7 Eintraegen.
 - GitBuck Frontend: optionales `assetUrl`-Preview-Feld fuer Worker-vertrauenswuerdige
   Raster-Assets.
+- Production Gateway: `https://serva-gateway.getsop.dev` ist der oeffentliche,
+  enge Serva-Site-Gateway. `getsop.dev` selbst ist nicht als GitBuck-Site-Domain
+  verdrahtet.
+- Cloudflare Tunnel: `serva-gateway.getsop.dev -> http://localhost:18201`.
+- Remote AI-Server: `serva-site-gateway.service` und `serva-cloudflared.service`
+  sind der produktive Laufzeitpfad.
+- GitBuck Worker: `SERVA_BASE_URL=https://serva-gateway.getsop.dev` und
+  `SERVA_SITE_TOKEN` sind als Worker-Environment/Secret gesetzt.
 
-Nicht automatisch umgesetzt:
+Nicht als Default aktiviert:
 
-- Kein Cloudflare-Tunnel wird blind angelegt.
 - Keine Secrets werden committed.
 - R2 ist vorbereitet als naechster sauberer Asset-Persistenzpfad, aber nicht
   als verpflichtende Default-Abhaengigkeit aktiviert.
+
+Verifizierte Sicherheitsoberflaeche:
+
+- `GET https://serva-gateway.getsop.dev/health` -> 200.
+- `GET /v1/serva/capabilities` ohne Token -> 401.
+- `/v1/chat/completions` am Gateway -> 404.
+- End-to-End ueber `POST https://gitbuck-rewire.starbuck1912.workers.dev/rewire`
+  liefert `provider: serva`, CORS fuer `https://starbuck100.github.io`, und
+  `upstreamErrors: []`.
 
 ## Aktueller Serva-Stand
 
@@ -41,7 +57,7 @@ saubere Asset-Normalisierung fuer die bestehende Image-Skill-Pipeline.
 ## Zielbild
 
 - Browser ruft `POST /rewire` beim Cloudflare Worker auf.
-- Worker authentifiziert Origin, limitiert Rate, normalisiert Prompt und leitet nur ein enges JSON an Serva weiter.
+- Worker authentifiziert Origin, limitiert Rate, normalisiert Prompt und leitet nur ein enges JSON an `https://serva-gateway.getsop.dev` weiter.
 - Serva ist das zentrale Gateway auf dem AI-PC und bietet zusaetzlich zu seinen bestehenden `/v1/serva/*` Routen:
   - `GET /v1/serva/capabilities`
   - `POST /v1/serva/sites/gitbuck/rewire`
@@ -110,7 +126,7 @@ saubere Asset-Normalisierung fuer die bestehende Image-Skill-Pipeline.
 1. In Serva `serva/site_rewrite.py` anlegen und in `serva/server.py` verdrahten.
 2. `GET /v1/serva/capabilities`, `POST /v1/serva/sites/gitbuck/rewire`, `POST /v1/serva/sites/gitbuck/assets` implementieren.
 3. ERNIE-Image-Skill nicht neu bauen, sondern ueber bestehende Skill-/Generate-Pipeline nutzen.
-4. Cloudflare Tunnel fuer Serva-Endpoint einrichten; Endpoint nicht direkt public listen.
+4. Cloudflare Tunnel ist produktiv: `serva-gateway.getsop.dev -> http://localhost:18201`.
 5. Worker auf Serva-First umstellen, OpenRouter nur als optionalen Fallback behalten.
 6. R2 fuer Assets anbinden und `assetUrl` als optionales validiertes Feld einfuehren.
 7. Playwright-Tests: promptnahe Texte, Library mit 7 Eintraegen, Asset sichtbar, mobile kein Overflow.
@@ -122,7 +138,9 @@ Du arbeitest an zwei lokalen Checkouts:
 - GitBuck static site: `C:\Users\latentspace\starbuck100.github.io`
 - Serva gateway: `C:\Users\latentspace\serva`
 
-Ziel: GitBuck bleibt eine statische GitHub-Pages-Seite. Die dynamische Text- und Asset-Generierung soll optional ueber Serva auf dem lokalen AI-PC laufen. Public Entry bleibt nur der Cloudflare Worker. Keine Secrets committen.
+Ziel: GitBuck bleibt eine statische GitHub-Pages-Seite. Die dynamische Text- und Asset-Generierung laeuft ueber Serva auf dem lokalen AI-PC. Public Entry bleibt nur der Cloudflare Worker plus der enge Site-Gateway `https://serva-gateway.getsop.dev`. Keine Secrets committen.
+
+Aktueller produktiver Pfad: GitBuck Worker -> `https://serva-gateway.getsop.dev` -> Cloudflare Tunnel -> `http://localhost:18201` auf dem AI-Server. `getsop.dev` ist Gateway-Infrastruktur, nicht die GitBuck-Site-Domain.
 
 Lies zuerst diese Dateien:
 
@@ -167,7 +185,7 @@ Arbeitsumfang Serva:
 Arbeitsumfang GitBuck Worker:
 
 5. Erweitere `worker/src/worker.js`.
-   - Neue Env Vars: `SERVA_BASE_URL`, `SERVA_SITE_TOKEN`, optional `SERVA_TIMEOUT_MS`.
+   - Erwartete Env Vars: `SERVA_BASE_URL=https://serva-gateway.getsop.dev`, `SERVA_SITE_TOKEN`, optional `SERVA_TIMEOUT_MS`.
    - In `/rewire`: zuerst Serva `POST /v1/serva/sites/gitbuck/rewire` versuchen.
    - Wenn Serva nicht erreichbar oder ungueltig antwortet: OpenRouter-Fallback behalten.
    - Danach immer vorhandene Worker-Validierung, KV-Persistenz und Library-Antwort verwenden.
