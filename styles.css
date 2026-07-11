@@ -1048,7 +1048,7 @@ body[data-layout="deck"] .work-card:nth-child(even) {
 
 .project-rail {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
